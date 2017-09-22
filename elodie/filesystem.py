@@ -218,7 +218,7 @@ class FileSystem(object):
         # pdb.set_trace()
         return self.cached_folder_path_definition
 
-    def get_folder_path(self, metadata):
+    def get_folder_path(self, metadata, original_folder = None):
         """Given a media's metadata this function returns the folder path as a string.
 
         :param metadata dict: Metadata dictionary.
@@ -258,6 +258,10 @@ class FileSystem(object):
                 elif part in ('album'):
                     if metadata['album']:
                         path.append(metadata['album'])
+                        break
+                elif part in ('original_folder'):
+                    if not original_folder:
+                        path.append(original_folder)
                         break
                 elif part.startswith('"') and part.endswith('"'):
                     path.append(part[1:-1])
@@ -340,7 +344,7 @@ class FileSystem(object):
         media.set_original_name()
         metadata = media.get_metadata()
 
-        directory_name = self.get_folder_path(metadata)
+        directory_name = self.get_folder_path(metadata, os.path.basename(os.path.dirname(_file)))
 
         dest_directory = os.path.join(destination, directory_name)
         file_name = self.get_file_name(media)
