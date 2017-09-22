@@ -181,7 +181,7 @@ def lookup(**kwargs):
                     path,
                     urllib.parse.urlencode(params)
               )
-        r = requests.get(url)
+        r = requests.get(url, headers={'Accept-Language': 'en-US,en;q=0.8'})
         return parse_result(r.json())
     except requests.exceptions.RequestException as e:
         log.error(e)
