@@ -116,7 +116,7 @@ def get_key():
 
 
 def place_name(lat, lon):
-    lookup_place_name_default = {'default': __DEFAULT_LOCATION__}
+    lookup_place_name_default = None #{'default': __DEFAULT_LOCATION__}
     if(lat is None or lon is None):
         return lookup_place_name_default
 

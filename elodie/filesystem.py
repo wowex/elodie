@@ -213,6 +213,9 @@ class FileSystem(object):
                     )
                 self.cached_folder_path_definition.append(this_part)
 
+        print("DEBUG: %s" % (self.cached_folder_path_definition))
+        # import pdb
+        # pdb.set_trace()
         return self.cached_folder_path_definition
 
     def get_folder_path(self, metadata):
@@ -243,14 +246,15 @@ class FileSystem(object):
                         metadata['longitude']
                     )
 
-                    location_parts = re.findall('(%[^%]+)', mask)
-                    parsed_folder_name = self.parse_mask_for_location(
-                        mask,
-                        location_parts,
-                        place_name,
-                    )
-                    path.append(parsed_folder_name)
-                    break
+                    if place_name:
+                        location_parts = re.findall('(%[^%]+)', mask)
+                        parsed_folder_name = self.parse_mask_for_location(
+                            mask,
+                            location_parts,
+                            place_name,
+                        )
+                        path.append(parsed_folder_name)
+                        break
                 elif part in ('album'):
                     if metadata['album']:
                         path.append(metadata['album'])
