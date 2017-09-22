@@ -281,7 +281,8 @@ class Media(Base):
         source = self.source
 
         status = ''
-        with ExifTool(addedargs=self.exiftool_addedargs) as et:
-            status = et.set_tags(tags, source)
+        print("SKIPPED to change exif (no no) %s" % (source))
+        # with ExifTool(addedargs=self.exiftool_addedargs) as et:
+        #     status = et.set_tags(tags, source)
 
         return status != ''
