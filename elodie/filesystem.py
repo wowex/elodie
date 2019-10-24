@@ -109,6 +109,9 @@ class FileSystem(object):
             :class:`~elodie.media.video.Video`
         :returns: str or None for non-photo or non-videos
         """
+        if media.source:
+            return os.path.basename(media.source)
+
         if(not media.is_valid()):
             return None
 
@@ -260,7 +263,7 @@ class FileSystem(object):
                         path.append(metadata['album'])
                         break
                 elif part in ('original_folder'):
-                    if not original_folder:
+                    if original_folder:
                         path.append(original_folder)
                         break
                 elif part.startswith('"') and part.endswith('"'):
@@ -327,6 +330,54 @@ class FileSystem(object):
             folder_name = place_name['default']
 
         return folder_name
+
+    def move_file(self, _file, destination):
+        dest_directory = destination
+        file_name = os.path.basename(_file)
+        dest_path = os.path.join(dest_directory, file_name)
+
+        db = Db()
+        checksum = db.checksum(_file)
+        if(checksum is None):
+            log.info('Could not get checksum for %s. Skipping...' % _file)
+            return
+
+        # If source and destination are identical then
+        #  we should not write the file. gh-210
+        if(_file == dest_path):
+            print('Final source and destination path should not be identical')
+            return
+
+        self.create_directory(dest_directory)
+
+        stat = os.stat(_file)
+        print("Moving [%s] -> [%s]" % (_file, dest_path))
+        shutil.move(_file, dest_path)
+        os.utime(dest_path, (stat.st_atime, stat.st_mtime))
+
+        print("Updating hash [%s] = [%s]" % (checksum, dest_path))
+        db.move_hash(checksum, dest_path)
+
+        db.update_hash_db()
+
+        return dest_path
+
+    def remove_file(self, _file):
+        db = Db()
+        checksum = db.checksum(_file)
+        if(checksum is None):
+            log.info('Could not get checksum for %s. Skipping...' % _file)
+            return
+
+        stat = os.stat(_file)
+        print("Removing [%s]" % (_file))
+
+        if db.remove(checksum, _file):
+            os.unlink(_file)
+            db.update_hash_db()
+            return True
+
+        return False
 
     def process_file(self, _file, destination, media, **kwargs):
         move = False

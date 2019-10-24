@@ -92,6 +92,10 @@ def _import(destination, source, file, album_from_folder, trash, allow_duplicate
     constants.debug = debug
     has_errors = False
     result = Result()
+    import sys
+    from importlib import reload
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
     destination = _decode(destination)
     destination = os.path.abspath(os.path.expanduser(destination))
@@ -330,12 +334,86 @@ def _update(album, location, time, title, paths, debug):
         sys.exit(1)
 
 
+@click.command('move')
+@click.option('--destination', type=click.Path(file_okay=False),
+              required=True, help='Copy imported files into this directory.')
+@click.option('--file', type=click.Path(dir_okay=False),
+              help='Import this file, if specified.')
+@click.argument('paths', nargs=-1, type=click.Path())
+def _move(destination, file, paths):
+    """Move imported file to destionation.
+    """
+    has_errors = False
+    result = Result()
+
+    destination = _decode(destination)
+    destination = os.path.abspath(os.path.expanduser(destination))
+
+    files = set()
+    paths = set(paths)
+    if file:
+        paths.add(file)
+
+    for path in paths:
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            files.update(FILESYSTEM.get_all_files(path, None))
+        else:
+            files.add(path)
+
+    for current_file in files:
+        dest_path = FILESYSTEM.move_file(current_file, destination)
+        result.append((current_file, dest_path))
+        has_errors = has_errors is True or not dest_path
+
+    result.write()
+
+    if has_errors:
+        sys.exit(1)
+
+
+@click.command('remove')
+@click.option('--file', type=click.Path(dir_okay=False),
+              help='Import this file, if specified.')
+@click.argument('paths', nargs=-1, type=click.Path())
+def _remove(file, paths):
+    """Move imported file to destionation.
+    """
+    has_errors = False
+    result = Result()
+
+    files = set()
+    paths = set(paths)
+    if file:
+        paths.add(file)
+
+    for path in paths:
+        path = os.path.expanduser(path)
+        if os.path.isdir(path):
+            files.update(FILESYSTEM.get_all_files(path, None))
+        else:
+            files.add(path)
+
+    for current_file in files:
+        removed = FILESYSTEM.remove_file(current_file)
+        result.append((current_file, removed))
+        has_errors = has_errors is True or not removed
+
+    result.write()
+
+    if has_errors:
+        sys.exit(1)
+
+
+
 @click.group()
 def main():
     pass
 
 
 main.add_command(_import)
+main.add_command(_move)
+main.add_command(_remove)
 main.add_command(_update)
 main.add_command(_generate_db)
 main.add_command(_verify)

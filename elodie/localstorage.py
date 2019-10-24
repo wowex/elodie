@@ -69,6 +69,35 @@ class Db(object):
         if(write is True):
             self.update_hash_db()
 
+    def move_hash(self, key, value, write=False):
+        """Add a hash to the hash db.
+
+        :param str key:
+        :param str value:
+        :param bool write: If true, write the hash db to disk.
+        """
+        self.hash_db[key] = value
+        if(write is True):
+            self.update_hash_db()
+
+    def remove(self, key, value, write=False):
+        """Add a hash to the hash db.
+
+        :param str key:
+        :param str value:
+        :param bool write: If true, write the hash db to disk.
+        """
+
+        deleted = False
+        if key in self.hash_db and self.hash_db[key] == value:
+            del(self.hash_db[key])
+            deleted = True
+
+        if(write is True and deleted):
+            self.update_hash_db()
+
+        return deleted
+
     # Location database
     # Currently quite simple just a list of long/lat pairs with a name
     # If it gets many entries a lookup might take too long and a better
